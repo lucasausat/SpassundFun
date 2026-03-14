@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viel Glück... du wirst es brauchen! 😂</title>
+    <title>Troll-Zentrale v3.0 😂</title>
     <style>
         body {
             font-family: 'Comic Sans MS', cursive, sans-serif;
@@ -19,7 +19,6 @@
             user-select: none;
         }
 
-        /* Bann-Screen */
         #banScreen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -45,125 +44,138 @@
             position: absolute;
             z-index: 100;
             box-shadow: 0 5px #c0392b;
-            transition: left 0.1s ease, top 0.1s ease;
+            transition: left 0.15s ease-out, top 0.15s ease-out;
         }
 
-        .glitch { animation: shake 0.5s infinite; }
+        /* Slide-In Emotes */
+        .troll-emote {
+            position: fixed;
+            font-size: 5rem;
+            bottom: -100px;
+            transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 50;
+        }
+
+        .slide-up { bottom: 20px !important; }
+
+        #fakeLoader {
+            display: none;
+            width: 200px;
+            height: 20px;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        #fakeProgress {
+            width: 0%;
+            height: 100%;
+            background: #2ed573;
+            transition: width 0.1s linear;
+        }
+
+        .glitch { animation: shake 0.3s infinite; }
         @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            40% { transform: translate(3px, 2px) rotate(-1deg); }
-            100% { transform: translate(1px, -1px) rotate(0deg); }
+            0% { transform: translate(2px, 2px); }
+            50% { transform: translate(-2px, -2px); }
+            100% { transform: translate(0, 0); }
         }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
     <div id="banScreen">
-        <h1>🚨 ZUGRIFF VERWEIGERT 🚨</h1>
-        <p id="banMsg">Cheater erkannt! Du bist gesperrt.</p>
+        <h1>🚨 SYSTEM-SPERRE 🚨</h1>
+        <p id="banMsg">Cheater erkannt!</p>
         <h2 id="timer">04:00</h2>
-        <p>Neu laden bringt dir gar nichts... 😉</p>
     </div>
 
     <div id="mainContent" class="container">
         <h1 id="header">Versuch's doch! 🎈</h1>
-        <div id="counterDisplay">Erfolge: <span id="count">0</span></div>
+        <div id="counterDisplay">Punkte: <span id="count">0</span></div>
+        <div id="fakeLoader"><div id="fakeProgress"></div></div>
     </div>
 
     <button id="runAwayBtn">KLICK MICH!</button>
+    <div id="trollEmote" class="troll-emote">🤡</div>
 
     <script>
         const btn = document.getElementById('runAwayBtn');
-        const banScreen = document.getElementById('banScreen');
-        const timerDisplay = document.getElementById('timer');
+        const emote = document.getElementById('trollEmote');
+        const loader = document.getElementById('fakeLoader');
+        const progress = document.getElementById('fakeProgress');
+        const countSpan = document.getElementById('count');
+        let clicks = 0;
         let lastClick = 0;
         let initialETag = null;
 
-        // --- 1. AUTO-UPDATE LOGIK (Prüft alle 30s auf neue GitHub-Version) ---
+        // --- 1. AUTO-UPDATE ---
         async function checkForUpdates() {
             try {
                 const response = await fetch(window.location.href, { method: 'HEAD', cache: 'no-cache' });
                 const etag = response.headers.get('etag') || response.headers.get('last-modified');
-                if (!initialETag) {
-                    initialETag = etag;
-                } else if (etag !== initialETag) {
-                    location.reload();
-                }
-            } catch (e) { /* Ignore */ }
+                if (initialETag && etag !== initialETag) location.reload();
+                initialETag = etag;
+            } catch (e) {}
         }
-        setInterval(checkForUpdates, 30000);
+        setInterval(checkForUpdates, 15000);
 
         // --- 2. BANN SYSTEM ---
-        function checkBan() {
-            const banEnd = localStorage.getItem('banEndTime');
-            if (banEnd && Date.now() < banEnd) {
-                activateBan(banEnd);
-            }
+        function triggerBan(reason) {
+            const endTime = Date.now() + (4 * 60 * 1000);
+            localStorage.setItem('banEndTime', endTime);
+            location.reload();
         }
 
-        function activateBan(endTime) {
-            banScreen.style.display = 'flex';
-            const interval = setInterval(() => {
-                const remaining = Math.round((endTime - Date.now()) / 1000);
-                if (remaining <= 0) {
-                    clearInterval(interval);
-                    localStorage.removeItem('banEndTime');
-                    location.reload();
-                } else {
-                    const mins = Math.floor(remaining / 60);
-                    const secs = remaining % 60;
-                    timerDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                }
+        if (localStorage.getItem('banEndTime') && Date.now() < localStorage.getItem('banEndTime')) {
+            document.getElementById('banScreen').style.display = 'flex';
+            setInterval(() => {
+                const rem = Math.round((localStorage.getItem('banEndTime') - Date.now()) / 1000);
+                if (rem <= 0) { localStorage.removeItem('banEndTime'); location.reload(); }
+                document.getElementById('timer').innerText = `${Math.floor(rem/60)}:${(rem%60).toString().padStart(2,'0')}`;
             }, 1000);
         }
 
-        function triggerBan(reason) {
-            const endTime = Date.now() + (4 * 60 * 1000); 
-            localStorage.setItem('banEndTime', endTime);
-            document.getElementById('banMsg').innerText = reason;
-            activateBan(endTime);
-        }
-
-        // --- 3. ANTI CHEAT (Dev-Tools & Autoclicker) ---
-        document.addEventListener('keydown', (e) => {
-            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C')) || (e.ctrlKey && e.key === 'U')) {
-                e.preventDefault();
-                triggerBan("Versuchst du etwa die Konsole zu öffnen? SCHÄM DICH! 😤");
-            }
+        // --- 3. ANTI-CHEAT ---
+        document.addEventListener('keydown', e => {
+            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C'))) triggerBan("Konsole ist verboten! 🚫");
         });
 
-        btn.addEventListener('click', () => {
-            const now = Date.now();
-            if (now - lastClick < 60) {
-                triggerBan("Autoclicker erkannt! 🤖 So schnell klickt kein Mensch.");
-                return;
-            }
-            lastClick = now;
-            alert("WAS?! Wie hast du das geschafft? 😱");
-            moveButton();
-        });
-
-        // --- 4. LUSTIGES CHAOS (Cursor, Flip & Glitch) ---
-        const cursors = ['wait', 'help', 'crosshair', 'move', 'not-allowed', 'progress', 'no-drop'];
+        // --- 4. DAS CHAOS-ROULETTE ---
+        const emotes = ['🤡', '🤣', '😜', '👻', '💩', '🖕'];
         
-        setInterval(() => {
-            // Cursor-Chaos
-            document.body.style.cursor = cursors[Math.floor(Math.random() * cursors.length)];
+        function startRandomChaos() {
+            const r = Math.random();
             
-            // Random Flip (Bildschirm drehen)
-            if(Math.random() > 0.9) {
+            // A: Slide-In Emote
+            emote.innerText = emotes[Math.floor(Math.random() * emotes.length)];
+            emote.classList.add('slide-up');
+            setTimeout(() => emote.classList.remove('slide-up'), 3000);
+
+            // B: Fake Loading
+            if (r > 0.7) {
+                loader.style.display = 'block';
+                let p = 0;
+                const inv = setInterval(() => {
+                    p += Math.random() * 5;
+                    progress.style.width = p + '%';
+                    if (p >= 99) {
+                        clearInterval(inv);
+                        setTimeout(() => { loader.style.display = 'none'; progress.style.width = '0%'; }, 1000);
+                    }
+                }, 100);
+            }
+
+            // C: Bildschirm-Flip
+            if (r < 0.2) {
                 document.body.style.transform = "rotate(180deg)";
-                setTimeout(() => { document.body.style.transform = "rotate(0deg)"; }, 2000);
+                setTimeout(() => document.body.style.transform = "rotate(0deg)", 2000);
             }
+        }
+        setInterval(startRandomChaos, 8000);
 
-            // Glitch-Effekt
-            if(Math.random() > 0.8) {
-                document.body.classList.add('glitch');
-                setTimeout(() => document.body.classList.remove('glitch'), 500);
-            }
-        }, 4000);
-
+        // --- 5. BUTTON LOGIK ---
         function moveButton() {
             const x = Math.random() * (window.innerWidth - btn.clientWidth);
             const y = Math.random() * (window.innerHeight - btn.clientHeight);
@@ -173,10 +185,19 @@
         }
 
         btn.addEventListener('mouseover', moveButton);
-        window.onblur = () => { document.title = "KOMM ZURÜCK! 😭"; };
-        window.onfocus = () => { document.title = "Viel Glück beim Klicken! 😂"; };
+        btn.addEventListener('click', () => {
+            const now = Date.now();
+            if (now - lastClick < 60) { triggerBan("Autoclicker? Nicht mit mir! 🤖"); return; }
+            lastClick = now;
+            clicks++;
+            countSpan.innerText = clicks;
+            alert("TREFFER! Aber war das alles? 😂");
+            moveButton();
+        });
 
-        checkBan();
+        window.onblur = () => document.title = "WO WILLST DU HIN? 😡";
+        window.onfocus = () => document.title = "Troll-Zentrale v3.0 😂";
+
         moveButton();
     </script>
 </body>
