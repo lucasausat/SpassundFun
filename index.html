@@ -16,14 +16,11 @@
             margin: 0;
             overflow: hidden;
             text-align: center;
-            transition: background-color 0.2s ease;
-        }
-
-        h1 {
-            color: #ff4757;
-            text-shadow: 2px 2px #ffcc00;
+            transition: background-color 0.1s ease;
             user-select: none;
         }
+
+        h1 { color: #ff4757; text-shadow: 2px 2px #ffcc00; }
 
         .container {
             background: white;
@@ -31,8 +28,7 @@
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             border: 5px dashed #2ed573;
-            z-index: 1;
-            user-select: none;
+            position: relative;
         }
 
         #runAwayBtn {
@@ -45,85 +41,87 @@
             border-radius: 50px;
             cursor: pointer;
             position: absolute;
-            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: left 0.1s ease, top 0.1s ease, transform 0.1s ease;
             box-shadow: 0 5px #c0392b;
-            z-index: 100;
-            touch-action: none;
+            z-index: 1000;
         }
 
-        #counterDisplay {
-            margin-top: 20px;
-            font-size: 1.2rem;
-            color: #333;
-        }
+        /* Verhindert Ghost-Klicks auf Mobile */
+        #runAwayBtn { touch-action: none; }
     </style>
 </head>
-<body>
-
-    <div class="container">
-        <h1>Willkommen bei Spaß & Fun! 🎈</h1>
-        <p>Ein ganz normaler Button. Nichts Besonderes...</p>
-        <div id="counterDisplay">Geduld-Level: <span id="count">0</span></div>
+<body oncontextmenu="return false;"> <div class="container">
+        <h1 id="mainTitle">Viel Spaß beim Suchen! 🎈</h1>
+        <p>Autoclicker zwecklos. Konsole gesperrt. 😎</p>
+        <div id="counterDisplay">Versuche: <span id="count">0</span></div>
     </div>
 
-    <button id="runAwayBtn">Klick mich!</button>
+    <button id="runAwayBtn">KLICK MICH!</button>
 
     <script>
         const btn = document.getElementById('runAwayBtn');
         const countSpan = document.getElementById('count');
+        const title = document.getElementById('mainTitle');
         let clicks = 0;
-        let scale = 1;
+        let lastClickTime = 0;
 
-        const fakeMessages = [
-            "Knapp daneben ist auch vorbei! 😜",
-            "Maus-Batterie leer? Versuch's nochmal! 🔋",
-            "Systemfehler: Nutzer zu langsam. 🐢",
-            "Soll ich kurz anhalten? NÖ! 🏃‍♂️",
-            "Oha, fast! Aber eben nur fast. 🙃"
-        ];
+        // 1. Dev-Console Sperre (Tastenkombinationen)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "F12" || 
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || 
+                (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+                alert("Nix da! Keine Konsole für dich! 🚫");
+            }
+        });
 
+        // 2. Tab-Trolling
+        window.onblur = () => { document.title = "KOMM ZURÜCK! 😭"; };
+        window.onfocus = () => { document.title = "Viel Glück beim Klicken! 😂"; };
+
+        // 3. Die Flucht-Logik
         function moveButton() {
-            // Button wird bei jedem Versuch kleiner
-            if (scale > 0.4) scale -= 0.05;
-            
             const maxX = window.innerWidth - btn.clientWidth;
             const maxY = window.innerHeight - btn.clientHeight;
 
             const randomX = Math.random() * maxX;
             const randomY = Math.random() * maxY;
 
-            // Hintergrund-Farbe ändern
-            const hue = Math.floor(Math.random() * 360);
-            document.body.style.backgroundColor = `hsl(${hue}, 70%, 80%)`;
-
+            // Farben-Chaos
+            document.body.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 85%)`;
+            
             btn.style.left = randomX + 'px';
             btn.style.top = randomY + 'px';
-            btn.style.transform = `scale(${scale}) rotate(${Math.random() * 20 - 10}deg)`;
+            btn.style.transform = `rotate(${Math.random() * 40 - 20}deg)`;
         }
 
-        // Weglaufen bei Maus oder Touch
         btn.addEventListener('mouseover', moveButton);
-        btn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            moveButton();
-        });
+        btn.addEventListener('pointermove', moveButton); // Erkennt Maus-Annäherung besser
 
-        // Falls es doch jemand schafft
-        btn.addEventListener('click', () => {
-            clicks++;
+        // 4. Anti-Autoclicker & Klick-Logik
+        btn.addEventListener('click', (e) => {
+            const currentTime = new Date().getTime();
+            const timeDiff = currentTime - lastClickTime;
+
+            if (timeDiff < 50 && lastClickTime !== 0) {
+                alert("AUTOCLICKER ERKANNT! 🤖 Du Schummler!");
+                clicks = 0;
+            } else {
+                clicks++;
+                if(clicks % 3 === 0) {
+                   alert("Fehler 404: Klick nicht gefunden. Bitte Hardware neustarten. 😉");
+                } else {
+                   alert("WAS?! Wie hast du das gemacht? 😱");
+                }
+            }
+            
+            lastClickTime = currentTime;
             countSpan.innerText = clicks;
-            
-            const randomMsg = fakeMessages[Math.floor(Math.random() * fakeMessages.length)];
-            alert(randomMsg);
-            
-            // Nach einem Klick wird er wieder groß, aber flüchtet sofort
-            scale = 1;
             moveButton();
         });
 
-        // Startposition
-        btn.style.left = '50%';
-        btn.style.top = '70%';
+        // Startposition setzen
+        moveButton();
     </script>
 </body>
 </html>
