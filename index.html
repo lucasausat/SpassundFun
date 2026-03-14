@@ -1,13 +1,12 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spaß & Fun Projekt</title>
+    <title>Viel Glück beim Klicken! 😂</title>
     <style>
         body {
-            font-family: 'Comic Sans MS', cursive, sans-serif; /* Für den extra Fun-Faktor */
+            font-family: 'Comic Sans MS', cursive, sans-serif;
             background-color: #f0f0f0;
             display: flex;
             flex-direction: column;
@@ -17,11 +16,13 @@
             margin: 0;
             overflow: hidden;
             text-align: center;
+            transition: background-color 0.2s ease;
         }
 
         h1 {
             color: #ff4757;
             text-shadow: 2px 2px #ffcc00;
+            user-select: none;
         }
 
         .container {
@@ -30,6 +31,8 @@
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             border: 5px dashed #2ed573;
+            z-index: 1;
+            user-select: none;
         }
 
         #runAwayBtn {
@@ -41,14 +44,11 @@
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            position: absolute; /* Wichtig für das Bewegen */
-            transition: all 0.1s ease;
+            position: absolute;
+            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 5px #c0392b;
-        }
-
-        #runAwayBtn:active {
-            box-shadow: 0 2px #c0392b;
-            transform: translateY(3px);
+            z-index: 100;
+            touch-action: none;
         }
 
         #counterDisplay {
@@ -62,8 +62,8 @@
 
     <div class="container">
         <h1>Willkommen bei Spaß & Fun! 🎈</h1>
-        <p>Versuch doch mal, den Button zu klicken...</p>
-        <div id="counterDisplay">Erfolge: <span id="count">0</span></div>
+        <p>Ein ganz normaler Button. Nichts Besonderes...</p>
+        <div id="counterDisplay">Geduld-Level: <span id="count">0</span></div>
     </div>
 
     <button id="runAwayBtn">Klick mich!</button>
@@ -72,32 +72,58 @@
         const btn = document.getElementById('runAwayBtn');
         const countSpan = document.getElementById('count');
         let clicks = 0;
+        let scale = 1;
 
-        // Funktion: Button springt an eine zufällige Position
+        const fakeMessages = [
+            "Knapp daneben ist auch vorbei! 😜",
+            "Maus-Batterie leer? Versuch's nochmal! 🔋",
+            "Systemfehler: Nutzer zu langsam. 🐢",
+            "Soll ich kurz anhalten? NÖ! 🏃‍♂️",
+            "Oha, fast! Aber eben nur fast. 🙃"
+        ];
+
         function moveButton() {
+            // Button wird bei jedem Versuch kleiner
+            if (scale > 0.4) scale -= 0.05;
+            
             const maxX = window.innerWidth - btn.clientWidth;
             const maxY = window.innerHeight - btn.clientHeight;
 
-            const randomX = Math.floor(Math.random() * maxX);
-            const randomY = Math.floor(Math.random() * maxY);
+            const randomX = Math.random() * maxX;
+            const randomY = Math.random() * maxY;
+
+            // Hintergrund-Farbe ändern
+            const hue = Math.floor(Math.random() * 360);
+            document.body.style.backgroundColor = `hsl(${hue}, 70%, 80%)`;
 
             btn.style.left = randomX + 'px';
             btn.style.top = randomY + 'px';
+            btn.style.transform = `scale(${scale}) rotate(${Math.random() * 20 - 10}deg)`;
         }
 
-        // Wenn die Maus den Button berührt -> Weglaufen!
+        // Weglaufen bei Maus oder Touch
         btn.addEventListener('mouseover', moveButton);
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveButton();
+        });
 
-        // Falls es doch jemand schafft zu klicken
+        // Falls es doch jemand schafft
         btn.addEventListener('click', () => {
             clicks++;
             countSpan.innerText = clicks;
-            alert("WAS?! Wie hast du das geschafft? 😱");
-            moveButton(); // Und wieder weg!
+            
+            const randomMsg = fakeMessages[Math.floor(Math.random() * fakeMessages.length)];
+            alert(randomMsg);
+            
+            // Nach einem Klick wird er wieder groß, aber flüchtet sofort
+            scale = 1;
+            moveButton();
         });
 
-        // Initialposition setzen
-        moveButton();
+        // Startposition
+        btn.style.left = '50%';
+        btn.style.top = '70%';
     </script>
 </body>
 </html>
