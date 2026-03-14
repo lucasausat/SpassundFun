@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TROLL-ENDLEVEL 💀</title>
+    <title>TROLL-UNIVERSE 💀</title>
     <style>
         body {
             font-family: 'Comic Sans MS', cursive, sans-serif;
@@ -15,27 +15,36 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
-            transition: background-color 0.1s;
+            transition: all 0.2s ease;
             user-select: none;
         }
 
-        #banScreen, #jumpscare {
+        /* HARD BAN SCREEN */
+        #banScreen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
+            background: black;
+            color: #ff0000;
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 10000;
+            z-index: 100000;
+            font-family: 'Courier New', monospace;
+            text-align: center;
         }
 
-        #banScreen { 
-            background: black; 
-            color: #ff0000; 
-            font-family: 'Courier New', Courier, monospace;
+        #jumpscareOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: none;
+            background: black;
+            color: white;
+            font-size: 20rem;
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
         }
-
-        #jumpscare { background: black; color: white; font-size: 15rem; }
 
         #runAwayBtn {
             padding: 15px 30px;
@@ -49,47 +58,37 @@
             position: absolute;
             z-index: 100;
             box-shadow: 0 5px #c0392b;
-            transition: transform 0.1s ease;
+            transition: transform 0.1s;
         }
 
-        .flash { animation: flashAnim 0.1s infinite; }
-        @keyframes flashAnim {
-            0% { background-color: #ff0000; }
-            50% { background-color: #00ff00; }
-            100% { background-color: #0000ff; }
-        }
+        .flash-red { animation: flashRed 0.1s infinite; }
+        @keyframes flashRed { 0% { background: red; } 50% { background: black; } }
 
-        .crazy-rotate { animation: rotateAnim 1s infinite linear; }
-        @keyframes rotateAnim {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        .crazy-rotate { animation: rotateAnim 0.5s infinite linear; }
+        @keyframes rotateAnim { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        .ban-glitch { animation: shake 0.1s infinite; }
-        @keyframes shake {
-            0% { transform: translate(5px, 5px); }
-            50% { transform: translate(-5px, -5px); }
-            100% { transform: translate(0, 0); }
-        }
+        #modeInfo { position: fixed; top: 10px; right: 10px; font-size: 0.8rem; opacity: 0.5; }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
-    <div id="jumpscare">💀</div>
+    <div id="jumpscareOverlay">💀</div>
 
-    <div id="banScreen" class="ban-glitch">
-        <h1>⚠ KRITISCHER SYSTEMFEHLER ⚠</h1>
-        <p style="font-size: 1.5rem;">ZUGRIFF VERWEIGERT: UNBEFUGTER MANIPULATIONSVERSUCH</p>
-        <div style="border: 2px solid red; padding: 20px; background: #200000;">
-            <h2 id="timer">04:00</h2>
-            <p>Dein Browser wurde für diese Seite temporär isoliert.</p>
+    <div id="banScreen">
+        <h1 style="font-size: 3rem;">🚨 SYSTEM LOCKOUT 🚨</h1>
+        <p>UNBEFUGTE MANIPULATION ERKANNT.</p>
+        <div style="border: 3px solid red; padding: 30px; margin: 20px; background: #1a0000;">
+            <h2 id="timer">05:00</h2>
+            <p>DEIN GERÄT WURDE TEMPORÄR FÜR DIESE DOMAIN GESPERRT.</p>
         </div>
-        <p style="margin-top: 20px; font-size: 0.8rem;">Error Code: CHEATER_DETECTED_0x666</p>
+        <p style="color: #444;">Device-UID: <span id="deviceIdDisplay"></span></p>
     </div>
+
+    <div id="modeInfo">Phase: <span id="currentPhase">Laden...</span></div>
 
     <div id="mainContent">
         <h1 id="header">Fang den Button! 🎈</h1>
-        <div id="counterDisplay" style="font-size: 2rem;">Score: <span id="count">0</span></div>
+        <div style="font-size: 2rem;">Score: <span id="count">0</span></div>
     </div>
 
     <button id="runAwayBtn">KLICK MICH!</button>
@@ -97,115 +96,132 @@
     <script>
         const btn = document.getElementById('runAwayBtn');
         const countSpan = document.getElementById('count');
-        const jumpscare = document.getElementById('jumpscare');
         const banScreen = document.getElementById('banScreen');
-        
+        const jumpscare = document.getElementById('jumpscareOverlay');
+        const phaseSpan = document.getElementById('currentPhase');
+
         let clicks = 0;
         let lastClick = 0;
-        let initialETag = null;
+        let gamePhase = 0; // 0: Button-Run, 1: Ghost-Mode, 2: Speed-Chaos
 
-        // --- 1. AUTO-RELOAD BEI GITHUB UPDATE ---
-        async function checkUpdate() {
-            try {
-                const res = await fetch(window.location.href, { method: 'HEAD', cache: 'no-cache' });
-                const etag = res.headers.get('etag');
-                if (initialETag && etag !== initialETag) location.reload();
-                initialETag = etag;
-            } catch(e) {}
+        // --- 1. GERÄTE-ID SIMULATION ---
+        if(!localStorage.getItem('troll_id')) {
+            localStorage.setItem('troll_id', 'DEV-' + Math.random().toString(36).substring(2, 11).toUpperCase());
         }
-        setInterval(checkUpdate, 10000);
+        document.getElementById('deviceIdDisplay').innerText = localStorage.getItem('troll_id');
 
-        // --- 2. DAS HARTE BANN-SYSTEM ---
-        function activateBan(reason) {
-            const duration = 4 * 60 * 1000; // 4 Min
-            localStorage.setItem('banEndTime', Date.now() + duration);
-            location.reload(); 
+        // --- 2. HARD BANN LOGIK ---
+        function triggerHardBan() {
+            const banEnd = Date.now() + (5 * 60 * 1000);
+            localStorage.setItem('banEndTime', banEnd);
+            location.reload();
         }
 
-        function checkBanStatus() {
+        function checkBan() {
             const endTime = localStorage.getItem('banEndTime');
             if (endTime && Date.now() < endTime) {
                 banScreen.style.display = 'flex';
-                document.title = "!!! GESPERRT !!!";
+                document.body.innerHTML = banScreen.outerHTML; 
+                document.title = "SYSTEM GESPERRT";
                 
-                // Blockiert die Konsole aktiv durch Debugger-Loop
+                // Konsole aktiv unbrauchbar machen
                 setInterval(() => { debugger; }, 50);
 
-                const timerInt = setInterval(() => {
-                    const remaining = Math.round((endTime - Date.now()) / 1000);
-                    if (remaining <= 0) {
-                        localStorage.removeItem('banEndTime');
-                        clearInterval(timerInt);
-                        location.reload();
-                    } else {
-                        const m = Math.floor(remaining / 60);
-                        const s = remaining % 60;
-                        document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-                    }
+                setInterval(() => {
+                    const rem = Math.round((endTime - Date.now()) / 1000);
+                    if (rem <= 0) { localStorage.removeItem('banEndTime'); location.reload(); }
+                    const m = Math.floor(rem / 60);
+                    const s = rem % 60;
+                    document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
                 }, 1000);
                 return true;
             }
             return false;
         }
 
-        // --- 3. ANTI-CHEAT (Streng) ---
-        // Konsole erkennen
-        window.addEventListener('keydown', e => {
-            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) || (e.ctrlKey && e.key === 'U')) {
-                e.preventDefault();
-                activateBan("DevTools");
+        // --- 3. PHASEN-SYSTEM (Alle 5 Min) ---
+        function updatePhase() {
+            const phases = ["Button-Jagd", "Geister-Modus", "Totaler Wahnsinn"];
+            gamePhase = Math.floor(Math.random() * phases.length);
+            phaseSpan.innerText = phases[gamePhase];
+            
+            // Einmal pro Phase: Mega-Chaos (10 Sekunden)
+            setTimeout(triggerMegaChaos, 10000);
+        }
+        setInterval(updatePhase, 300000); 
+        updatePhase();
+
+        function triggerMegaChaos() {
+            document.body.classList.add('flash-red');
+            btn.classList.add('crazy-rotate');
+            doJumpscare("🤡");
+            setTimeout(() => {
+                document.body.classList.remove('flash-red');
+                btn.classList.remove('crazy-rotate');
+            }, 5000);
+        }
+
+        // --- 4. INDIVIDUELLE JUMPSCARES ---
+        function doJumpscare(emoji = "💀") {
+            jumpscare.innerText = emoji;
+            jumpscare.style.display = 'flex';
+            setTimeout(() => { jumpscare.style.display = 'none'; }, 150);
+        }
+
+        // --- 5. GAME LOGIK ---
+        function moveButton() {
+            if (localStorage.getItem('banEndTime')) return;
+
+            let x = Math.random() * (window.innerWidth - btn.clientWidth);
+            let y = Math.random() * (window.innerHeight - btn.clientHeight);
+            
+            btn.style.left = x + 'px';
+            btn.style.top = y + 'px';
+
+            // Phasen-Effekte
+            if(gamePhase === 1) { // Ghost Mode
+                btn.style.opacity = "0.05";
+                setTimeout(() => btn.style.opacity = "1", 100);
+            }
+            
+            // Zufälliger Klick-Erschrecker
+            if(Math.random() > 0.9) doJumpscare("👻");
+            
+            document.body.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 80%)`;
+        }
+
+        btn.addEventListener('mouseover', () => {
+            if(gamePhase === 2) { // Speed Chaos
+                for(let i=0; i<3; i++) setTimeout(moveButton, i*60);
+            } else {
+                moveButton();
             }
         });
 
-        // Autoclicker-Check
         btn.addEventListener('click', () => {
             const now = Date.now();
-            if (now - lastClick < 60) {
-                activateBan("Autoclicker");
-                return;
-            }
+            if (now - lastClick < 60) { triggerHardBan(); return; }
             lastClick = now;
             clicks++;
             countSpan.innerText = clicks;
-            alert("Wie hast du das gemacht?! 😱");
+            doJumpscare("😱");
+            alert("TREFFER! Aber bist du schnell genug für das nächste Level?");
             moveButton();
         });
 
-        // --- 4. GAME-LOGIK & CHAOS ---
-        function moveButton() {
-            if (localStorage.getItem('banEndTime')) return;
-            const x = Math.random() * (window.innerWidth - btn.clientWidth);
-            const y = Math.random() * (window.innerHeight - btn.clientHeight);
-            btn.style.left = x + 'px';
-            btn.style.top = y + 'px';
-            document.body.style.backgroundColor = `hsl(${Math.random() * 360}, 60%, 85%)`;
-        }
-
-        // Jumpscare alle 15-40 Sek
-        function randomJumpscare() {
-            if (Math.random() > 0.8) {
-                jumpscare.style.display = 'flex';
-                setTimeout(() => { jumpscare.style.display = 'none'; }, 150);
+        // --- 6. ANTI-CHEAT ---
+        window.addEventListener('keydown', e => {
+            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+                triggerHardBan();
             }
-            setTimeout(randomJumpscare, Math.random() * 25000 + 15000);
-        }
+        });
 
-        // Einmal pro Minute: Alles dreht sich
-        setInterval(() => {
-            document.body.classList.add('flash');
-            btn.classList.add('crazy-rotate');
-            setTimeout(() => {
-                document.body.classList.remove('flash');
-                btn.classList.remove('crazy-rotate');
-            }, 6000);
-        }, 60000);
-
-        btn.addEventListener('mouseover', moveButton);
-
-        // Start
-        if (!checkBanStatus()) {
+        // Init
+        if (!checkBan()) {
             moveButton();
-            randomJumpscare();
+            // Zufällige Jumpscares im Hintergrund
+            setInterval(() => { if(Math.random() > 0.7) doJumpscare("🌚"); }, 20000);
         }
     </script>
 </body>
