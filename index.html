@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viel Glück beim Klicken! 😂</title>
+    <title>Viel Glück... du wirst es brauchen! 😂</title>
     <style>
         body {
             font-family: 'Comic Sans MS', cursive, sans-serif;
@@ -15,20 +15,22 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
-            text-align: center;
-            transition: background-color 0.1s ease;
+            transition: all 0.2s ease;
             user-select: none;
         }
 
-        h1 { color: #ff4757; text-shadow: 2px 2px #ffcc00; }
-
-        .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border: 5px dashed #2ed573;
-            position: relative;
+        /* Bann-Screen */
+        #banScreen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #ff0000, #660000);
+            color: white;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            text-align: center;
         }
 
         #runAwayBtn {
@@ -41,86 +43,140 @@
             border-radius: 50px;
             cursor: pointer;
             position: absolute;
-            transition: left 0.1s ease, top 0.1s ease, transform 0.1s ease;
+            z-index: 100;
             box-shadow: 0 5px #c0392b;
-            z-index: 1000;
+            transition: left 0.1s ease, top 0.1s ease;
         }
 
-        /* Verhindert Ghost-Klicks auf Mobile */
-        #runAwayBtn { touch-action: none; }
+        .glitch { animation: shake 0.5s infinite; }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            40% { transform: translate(3px, 2px) rotate(-1deg); }
+            100% { transform: translate(1px, -1px) rotate(0deg); }
+        }
     </style>
 </head>
-<body oncontextmenu="return false;"> <div class="container">
-        <h1 id="mainTitle">Viel Spaß beim Suchen! 🎈</h1>
-        <p>Autoclicker zwecklos. Konsole gesperrt. 😎</p>
-        <div id="counterDisplay">Versuche: <span id="count">0</span></div>
+<body oncontextmenu="return false;">
+
+    <div id="banScreen">
+        <h1>🚨 ZUGRIFF VERWEIGERT 🚨</h1>
+        <p id="banMsg">Cheater erkannt! Du bist gesperrt.</p>
+        <h2 id="timer">04:00</h2>
+        <p>Neu laden bringt dir gar nichts... 😉</p>
+    </div>
+
+    <div id="mainContent" class="container">
+        <h1 id="header">Versuch's doch! 🎈</h1>
+        <div id="counterDisplay">Erfolge: <span id="count">0</span></div>
     </div>
 
     <button id="runAwayBtn">KLICK MICH!</button>
 
     <script>
         const btn = document.getElementById('runAwayBtn');
-        const countSpan = document.getElementById('count');
-        const title = document.getElementById('mainTitle');
-        let clicks = 0;
-        let lastClickTime = 0;
+        const banScreen = document.getElementById('banScreen');
+        const timerDisplay = document.getElementById('timer');
+        let lastClick = 0;
+        let initialETag = null;
 
-        // 1. Dev-Console Sperre (Tastenkombinationen)
+        // --- 1. AUTO-UPDATE LOGIK (Prüft alle 30s auf neue GitHub-Version) ---
+        async function checkForUpdates() {
+            try {
+                const response = await fetch(window.location.href, { method: 'HEAD', cache: 'no-cache' });
+                const etag = response.headers.get('etag') || response.headers.get('last-modified');
+                if (!initialETag) {
+                    initialETag = etag;
+                } else if (etag !== initialETag) {
+                    location.reload();
+                }
+            } catch (e) { /* Ignore */ }
+        }
+        setInterval(checkForUpdates, 30000);
+
+        // --- 2. BANN SYSTEM ---
+        function checkBan() {
+            const banEnd = localStorage.getItem('banEndTime');
+            if (banEnd && Date.now() < banEnd) {
+                activateBan(banEnd);
+            }
+        }
+
+        function activateBan(endTime) {
+            banScreen.style.display = 'flex';
+            const interval = setInterval(() => {
+                const remaining = Math.round((endTime - Date.now()) / 1000);
+                if (remaining <= 0) {
+                    clearInterval(interval);
+                    localStorage.removeItem('banEndTime');
+                    location.reload();
+                } else {
+                    const mins = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+                    timerDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+
+        function triggerBan(reason) {
+            const endTime = Date.now() + (4 * 60 * 1000); 
+            localStorage.setItem('banEndTime', endTime);
+            document.getElementById('banMsg').innerText = reason;
+            activateBan(endTime);
+        }
+
+        // --- 3. ANTI CHEAT (Dev-Tools & Autoclicker) ---
         document.addEventListener('keydown', (e) => {
-            if (e.key === "F12" || 
-                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || 
-                (e.ctrlKey && e.key === 'U')) {
+            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C')) || (e.ctrlKey && e.key === 'U')) {
                 e.preventDefault();
-                alert("Nix da! Keine Konsole für dich! 🚫");
+                triggerBan("Versuchst du etwa die Konsole zu öffnen? SCHÄM DICH! 😤");
             }
         });
 
-        // 2. Tab-Trolling
-        window.onblur = () => { document.title = "KOMM ZURÜCK! 😭"; };
-        window.onfocus = () => { document.title = "Viel Glück beim Klicken! 😂"; };
-
-        // 3. Die Flucht-Logik
-        function moveButton() {
-            const maxX = window.innerWidth - btn.clientWidth;
-            const maxY = window.innerHeight - btn.clientHeight;
-
-            const randomX = Math.random() * maxX;
-            const randomY = Math.random() * maxY;
-
-            // Farben-Chaos
-            document.body.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 85%)`;
-            
-            btn.style.left = randomX + 'px';
-            btn.style.top = randomY + 'px';
-            btn.style.transform = `rotate(${Math.random() * 40 - 20}deg)`;
-        }
-
-        btn.addEventListener('mouseover', moveButton);
-        btn.addEventListener('pointermove', moveButton); // Erkennt Maus-Annäherung besser
-
-        // 4. Anti-Autoclicker & Klick-Logik
-        btn.addEventListener('click', (e) => {
-            const currentTime = new Date().getTime();
-            const timeDiff = currentTime - lastClickTime;
-
-            if (timeDiff < 50 && lastClickTime !== 0) {
-                alert("AUTOCLICKER ERKANNT! 🤖 Du Schummler!");
-                clicks = 0;
-            } else {
-                clicks++;
-                if(clicks % 3 === 0) {
-                   alert("Fehler 404: Klick nicht gefunden. Bitte Hardware neustarten. 😉");
-                } else {
-                   alert("WAS?! Wie hast du das gemacht? 😱");
-                }
+        btn.addEventListener('click', () => {
+            const now = Date.now();
+            if (now - lastClick < 60) {
+                triggerBan("Autoclicker erkannt! 🤖 So schnell klickt kein Mensch.");
+                return;
             }
-            
-            lastClickTime = currentTime;
-            countSpan.innerText = clicks;
+            lastClick = now;
+            alert("WAS?! Wie hast du das geschafft? 😱");
             moveButton();
         });
 
-        // Startposition setzen
+        // --- 4. LUSTIGES CHAOS (Cursor, Flip & Glitch) ---
+        const cursors = ['wait', 'help', 'crosshair', 'move', 'not-allowed', 'progress', 'no-drop'];
+        
+        setInterval(() => {
+            // Cursor-Chaos
+            document.body.style.cursor = cursors[Math.floor(Math.random() * cursors.length)];
+            
+            // Random Flip (Bildschirm drehen)
+            if(Math.random() > 0.9) {
+                document.body.style.transform = "rotate(180deg)";
+                setTimeout(() => { document.body.style.transform = "rotate(0deg)"; }, 2000);
+            }
+
+            // Glitch-Effekt
+            if(Math.random() > 0.8) {
+                document.body.classList.add('glitch');
+                setTimeout(() => document.body.classList.remove('glitch'), 500);
+            }
+        }, 4000);
+
+        function moveButton() {
+            const x = Math.random() * (window.innerWidth - btn.clientWidth);
+            const y = Math.random() * (window.innerHeight - btn.clientHeight);
+            btn.style.left = x + 'px';
+            btn.style.top = y + 'px';
+            document.body.style.backgroundColor = `hsl(${Math.random() * 360}, 60%, 80%)`;
+        }
+
+        btn.addEventListener('mouseover', moveButton);
+        window.onblur = () => { document.title = "KOMM ZURÜCK! 😭"; };
+        window.onfocus = () => { document.title = "Viel Glück beim Klicken! 😂"; };
+
+        checkBan();
         moveButton();
     </script>
 </body>
