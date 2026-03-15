@@ -1,228 +1,336 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TROLL-UNIVERSE 💀</title>
-    <style>
-        body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-            background-color: #f0f0f0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            transition: all 0.2s ease;
-            user-select: none;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TROLL HORROR 💀</title>
 
-        /* HARD BAN SCREEN */
-        #banScreen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: black;
-            color: #ff0000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100000;
-            font-family: 'Courier New', monospace;
-            text-align: center;
-        }
+<style>
 
-        #jumpscareOverlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: none;
-            background: black;
-            color: white;
-            font-size: 20rem;
-            z-index: 99999;
-            align-items: center;
-            justify-content: center;
-        }
+body{
+background:#0b0b0b;
+color:white;
+font-family:Arial;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+height:100vh;
+margin:0;
+overflow:hidden;
+user-select:none;
+}
 
-        #runAwayBtn {
-            padding: 15px 30px;
-            font-size: 20px;
-            font-weight: bold;
-            background-color: #ff4757;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            position: absolute;
-            z-index: 100;
-            box-shadow: 0 5px #c0392b;
-            transition: transform 0.1s;
-        }
+/* epilepsy warning */
 
-        .flash-red { animation: flashRed 0.1s infinite; }
-        @keyframes flashRed { 0% { background: red; } 50% { background: black; } }
+#warning{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+background:#111;
+color:#ff4444;
+padding:10px;
+text-align:center;
+font-size:14px;
+z-index:999999;
+}
 
-        .crazy-rotate { animation: rotateAnim 0.5s infinite linear; }
-        @keyframes rotateAnim { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+/* jumpscare */
 
-        #modeInfo { position: fixed; top: 10px; right: 10px; font-size: 0.8rem; opacity: 0.5; }
-    </style>
+#jumpscare{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:black;
+display:none;
+align-items:center;
+justify-content:center;
+font-size:20rem;
+z-index:9999;
+}
+
+/* slide horror message */
+
+#horrorMsg{
+position:fixed;
+bottom:-100px;
+left:50%;
+transform:translateX(-50%);
+background:#1a0000;
+border:2px solid red;
+padding:15px 30px;
+font-size:1.2rem;
+transition:bottom 0.6s;
+z-index:5000;
+}
+
+/* button */
+
+#runBtn{
+padding:15px 35px;
+font-size:20px;
+background:#ff3333;
+border:none;
+border-radius:50px;
+cursor:pointer;
+position:absolute;
+box-shadow:0 0 20px red;
+}
+
+#score{
+font-size:2rem;
+}
+
+/* horror overlay */
+
+#darkOverlay{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+pointer-events:none;
+background:radial-gradient(circle,transparent 20%,black 80%);
+z-index:10;
+}
+
+</style>
 </head>
-<body oncontextmenu="return false;">
 
-    <div id="jumpscareOverlay">💀</div>
+<body>
 
-    <div id="banScreen">
-        <h1 style="font-size: 3rem;">🚨 SYSTEM LOCKOUT 🚨</h1>
-        <p>UNBEFUGTE MANIPULATION ERKANNT.</p>
-        <div style="border: 3px solid red; padding: 30px; margin: 20px; background: #1a0000;">
-            <h2 id="timer">05:00</h2>
-            <p>DEIN GERÄT WURDE TEMPORÄR FÜR DIESE DOMAIN GESPERRT.</p>
-        </div>
-        <p style="color: #444;">Device-UID: <span id="deviceIdDisplay"></span></p>
-    </div>
+<div id="warning">
+⚠ WARNUNG: Diese Seite enthält schnelle visuelle Effekte und Jumpscares. Nicht geeignet für Personen mit Epilepsie oder Lichtempfindlichkeit.
+</div>
 
-    <div id="modeInfo">Phase: <span id="currentPhase">Laden...</span></div>
+<div id="jumpscare">💀</div>
 
-    <div id="mainContent">
-        <h1 id="header">Fang den Button! 🎈</h1>
-        <div style="font-size: 2rem;">Score: <span id="count">0</span></div>
-    </div>
+<div id="horrorMsg"></div>
 
-    <button id="runAwayBtn">KLICK MICH!</button>
+<div id="darkOverlay"></div>
 
-    <script>
-        const btn = document.getElementById('runAwayBtn');
-        const countSpan = document.getElementById('count');
-        const banScreen = document.getElementById('banScreen');
-        const jumpscare = document.getElementById('jumpscareOverlay');
-        const phaseSpan = document.getElementById('currentPhase');
+<h1>Fang den Button</h1>
 
-        let clicks = 0;
-        let lastClick = 0;
-        let gamePhase = 0; // 0: Button-Run, 1: Ghost-Mode, 2: Speed-Chaos
+<div id="score">Score: <span id="count">0</span></div>
 
-        // --- 1. GERÄTE-ID SIMULATION ---
-        if(!localStorage.getItem('troll_id')) {
-            localStorage.setItem('troll_id', 'DEV-' + Math.random().toString(36).substring(2, 11).toUpperCase());
-        }
-        document.getElementById('deviceIdDisplay').innerText = localStorage.getItem('troll_id');
+<button id="runBtn">KLICK MICH</button>
 
-        // --- 2. HARD BANN LOGIK ---
-        function triggerHardBan() {
-            const banEnd = Date.now() + (5 * 60 * 1000);
-            localStorage.setItem('banEndTime', banEnd);
-            location.reload();
-        }
+<script>
 
-        function checkBan() {
-            const endTime = localStorage.getItem('banEndTime');
-            if (endTime && Date.now() < endTime) {
-                banScreen.style.display = 'flex';
-                document.body.innerHTML = banScreen.outerHTML; 
-                document.title = "SYSTEM GESPERRT";
-                
-                // Konsole aktiv unbrauchbar machen
-                setInterval(() => { debugger; }, 50);
+const btn = document.getElementById("runBtn")
+const jumpscare = document.getElementById("jumpscare")
+const msg = document.getElementById("horrorMsg")
+const scoreSpan = document.getElementById("count")
 
-                setInterval(() => {
-                    const rem = Math.round((endTime - Date.now()) / 1000);
-                    if (rem <= 0) { localStorage.removeItem('banEndTime'); location.reload(); }
-                    const m = Math.floor(rem / 60);
-                    const s = rem % 60;
-                    document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-                }, 1000);
-                return true;
-            }
-            return false;
-        }
+let score = 0
+let phase = 0
 
-        // --- 3. PHASEN-SYSTEM (Alle 5 Min) ---
-        function updatePhase() {
-            const phases = ["Button-Jagd", "Geister-Modus", "Totaler Wahnsinn"];
-            gamePhase = Math.floor(Math.random() * phases.length);
-            phaseSpan.innerText = phases[gamePhase];
-            
-            // Einmal pro Phase: Mega-Chaos (10 Sekunden)
-            setTimeout(triggerMegaChaos, 10000);
-        }
-        setInterval(updatePhase, 300000); 
-        updatePhase();
+/* device id */
 
-        function triggerMegaChaos() {
-            document.body.classList.add('flash-red');
-            btn.classList.add('crazy-rotate');
-            doJumpscare("🤡");
-            setTimeout(() => {
-                document.body.classList.remove('flash-red');
-                btn.classList.remove('crazy-rotate');
-            }, 5000);
-        }
+if(!localStorage.getItem("dev_id")){
+localStorage.setItem("dev_id","DEV-"+Math.random().toString(36).substring(2,10))
+}
 
-        // --- 4. INDIVIDUELLE JUMPSCARES ---
-        function doJumpscare(emoji = "💀") {
-            jumpscare.innerText = emoji;
-            jumpscare.style.display = 'flex';
-            setTimeout(() => { jumpscare.style.display = 'none'; }, 150);
-        }
+/* slide message */
 
-        // --- 5. GAME LOGIK ---
-        function moveButton() {
-            if (localStorage.getItem('banEndTime')) return;
+function horrorMessage(text){
 
-            let x = Math.random() * (window.innerWidth - btn.clientWidth);
-            let y = Math.random() * (window.innerHeight - btn.clientHeight);
-            
-            btn.style.left = x + 'px';
-            btn.style.top = y + 'px';
+msg.innerText = text
+msg.style.bottom="40px"
 
-            // Phasen-Effekte
-            if(gamePhase === 1) { // Ghost Mode
-                btn.style.opacity = "0.05";
-                setTimeout(() => btn.style.opacity = "1", 100);
-            }
-            
-            // Zufälliger Klick-Erschrecker
-            if(Math.random() > 0.9) doJumpscare("👻");
-            
-            document.body.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 80%)`;
-        }
+setTimeout(()=>{
+msg.style.bottom="-100px"
+},4000)
 
-        btn.addEventListener('mouseover', () => {
-            if(gamePhase === 2) { // Speed Chaos
-                for(let i=0; i<3; i++) setTimeout(moveButton, i*60);
-            } else {
-                moveButton();
-            }
-        });
+}
 
-        btn.addEventListener('click', () => {
-            const now = Date.now();
-            if (now - lastClick < 60) { triggerHardBan(); return; }
-            lastClick = now;
-            clicks++;
-            countSpan.innerText = clicks;
-            doJumpscare("😱");
-            alert("TREFFER! Aber bist du schnell genug für das nächste Level?");
-            moveButton();
-        });
+/* jumpscare */
 
-        // --- 6. ANTI-CHEAT ---
-        window.addEventListener('keydown', e => {
-            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U')) {
-                e.preventDefault();
-                triggerHardBan();
-            }
-        });
+function scare(emoji="💀"){
 
-        // Init
-        if (!checkBan()) {
-            moveButton();
-            // Zufällige Jumpscares im Hintergrund
-            setInterval(() => { if(Math.random() > 0.7) doJumpscare("🌚"); }, 20000);
-        }
-    </script>
+jumpscare.innerText = emoji
+jumpscare.style.display="flex"
+
+setTimeout(()=>{
+jumpscare.style.display="none"
+},200)
+
+}
+
+/* move button */
+
+function moveButton(){
+
+let x = Math.random()*(window.innerWidth-btn.offsetWidth)
+let y = Math.random()*(window.innerHeight-btn.offsetHeight)
+
+btn.style.left=x+"px"
+btn.style.top=y+"px"
+
+}
+
+/* mouse escape */
+
+document.addEventListener("mousemove",e=>{
+
+const rect = btn.getBoundingClientRect()
+
+let dx = e.clientX-rect.left
+let dy = e.clientY-rect.top
+
+let dist = Math.sqrt(dx*dx+dy*dy)
+
+if(dist<120){
+moveButton()
+}
+
+})
+
+/* fake buttons */
+
+function spawnFakes(){
+
+for(let i=0;i<4;i++){
+
+let fake = btn.cloneNode(true)
+
+fake.innerText="FALSCH"
+
+fake.onclick=()=>{
+scare("👻")
+}
+
+document.body.appendChild(fake)
+
+fake.style.left=Math.random()*window.innerWidth+"px"
+fake.style.top=Math.random()*window.innerHeight+"px"
+
+}
+
+}
+
+/* phases */
+
+function nextPhase(){
+
+phase=Math.floor(Math.random()*4)
+
+if(phase===0){
+horrorMessage("Es beobachtet dich...")
+}
+
+if(phase===1){
+spawnFakes()
+horrorMessage("Nicht jeder Button ist echt.")
+}
+
+if(phase===2){
+
+document.body.style.transform="rotate(2deg)"
+horrorMessage("Die Realität verzerrt sich.")
+
+}
+
+if(phase===3){
+
+horrorMessage("Du solltest vielleicht aufhören.")
+
+}
+
+}
+
+setInterval(nextPhase,25000)
+
+/* click */
+
+btn.onclick=()=>{
+
+score++
+scoreSpan.innerText=score
+
+scare("😱")
+
+moveButton()
+
+if(score===5){
+horrorMessage("Du wirst besser...")
+}
+
+if(score===10){
+horrorMessage("Das Spiel wird jetzt schwieriger.")
+}
+
+if(score===15){
+fakeVirus()
+}
+
+}
+
+/* virus screen */
+
+function fakeVirus(){
+
+document.body.innerHTML=`
+
+<h1 style="color:red;font-size:4rem">⚠ SYSTEM INFECTED</h1>
+
+<p>Uploading personal files...</p>
+
+<progress id="bar" max="100" value="0"></progress>
+
+`
+
+let bar=document.getElementById("bar")
+
+let i=0
+
+let interval=setInterval(()=>{
+
+i+=Math.random()*10
+bar.value=i
+
+if(i>=100){
+clearInterval(interval)
+location.reload()
+}
+
+},200)
+
+}
+
+/* devtools detection */
+
+setInterval(()=>{
+
+const threshold=160
+
+if(window.outerWidth-window.innerWidth>threshold ||
+window.outerHeight-window.innerHeight>threshold){
+
+horrorMessage("Manipulation erkannt.")
+
+}
+
+},1000)
+
+/* random scares */
+
+setInterval(()=>{
+
+if(Math.random()>0.7){
+scare("👁")
+}
+
+},20000)
+
+/* init */
+
+moveButton()
+
+</script>
+
 </body>
 </html>
