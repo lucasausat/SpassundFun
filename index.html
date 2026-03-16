@@ -1,272 +1,259 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ULTIMATE CHAOS GAMES 💀</title>
 
-<title>FUNNY CHAOS GAMES 💀</title>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            transition: transform 0.1s;
+        }
 
-<style>
+        /* Epilepsie Warnung */
+        #warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #111;
+            color: #ff4444;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            z-index: 10000;
+        }
 
-body{
-background:#0a0a0a;
-color:white;
-font-family:Arial;
-margin:0;
-overflow:hidden;
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-height:100vh;
-}
+        /* Jumpscare mit Schütteleffekt */
+        #jumpscare {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 20rem;
+            z-index: 9999;
+            color: white;
+        }
 
-/* epilepsie warnung */
+        .scare-active {
+            display: flex !important;
+            animation: flash 0.1s infinite;
+        }
 
-#warning{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-background:#111;
-color:#ff4444;
-text-align:center;
-padding:10px;
-font-size:14px;
-z-index:10000;
-}
+        @keyframes flash {
+            0% { background: black; }
+            50% { background: red; }
+            100% { background: black; }
+        }
 
-/* jumpscare */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            40% { transform: translate(3px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            80% { transform: translate(3px, -1px) rotate(1deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
 
-#jumpscare{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:black;
-display:none;
-align-items:center;
-justify-content:center;
-font-size:20rem;
-z-index:9999;
-}
+        /* Hauptmenü Overlay */
+        #menu {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+        }
 
-/* spiel info */
+        #menu h1 {
+            color: #ff3333;
+            font-size: 3rem;
+            text-shadow: 0 0 10px red;
+            margin-bottom: 30px;
+        }
 
-#gameTitle{
-font-size:2rem;
-margin-bottom:20px;
-}
+        /* Buttons */
+        button {
+            padding: 15px 30px;
+            font-size: 20px;
+            border: 2px solid #ff3333;
+            border-radius: 5px;
+            cursor: pointer;
+            background: transparent;
+            color: white;
+            margin: 10px;
+            width: 300px;
+            transition: all 0.3s;
+        }
 
-/* button */
+        button:hover {
+            background: #ff3333;
+            box-shadow: 0 0 20px #ff3333;
+            transform: scale(1.05);
+        }
 
-button{
-padding:15px 30px;
-font-size:20px;
-border:none;
-border-radius:40px;
-cursor:pointer;
-background:#ff3333;
-color:white;
-}
-
-</style>
+        #gameTitle {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+    </style>
 </head>
 
 <body>
 
-<div id="warning">
-⚠ WARNUNG: Diese Seite enthält schnelle visuelle Effekte, blinkende Farben und Jumpscares.
-Nicht geeignet für Menschen mit Epilepsie oder Lichtempfindlichkeit.
-</div>
-
-<div id="jumpscare">💀</div>
-
-<h1 id="gameTitle">Spiel wird geladen...</h1>
-
-<div id="gameArea"></div>
-
-<script>
-
-/* jumpscare */
-
-function scare(){
-
-const j = document.getElementById("jumpscare")
-
-j.style.display="flex"
-
-setTimeout(()=>{
-j.style.display="none"
-},200)
-
-}
-
-/* game area */
-
-const gameArea = document.getElementById("gameArea")
-const title = document.getElementById("gameTitle")
-
-/* game list */
-
-const games=[gameButtonRun,gameFakeButtons,gameDisappear,gameChaos]
-
-/* wechsel */
-
-function loadRandomGame(){
-
-gameArea.innerHTML=""
-
-const g = games[Math.floor(Math.random()*games.length)]
-
-g()
-
-}
-
-/* GAME 1 */
-
-function gameButtonRun(){
-
-title.innerText="Spiel: Fang den Button"
-
-let btn=document.createElement("button")
-btn.innerText="KLICK"
-
-gameArea.appendChild(btn)
-
-move()
-
-btn.onmouseover=move
-
-btn.onclick=()=>{
-scare()
-}
-
-function move(){
-
-btn.style.position="absolute"
-
-btn.style.left=Math.random()*window.innerWidth+"px"
-btn.style.top=Math.random()*window.innerHeight+"px"
-
-}
-
-}
-
-/* GAME 2 */
-
-function gameFakeButtons(){
-
-title.innerText="Spiel: Finde den echten Button"
-
-for(let i=0;i<6;i++){
-
-let btn=document.createElement("button")
-
-btn.innerText="KLICK"
-
-btn.style.position="absolute"
-
-btn.style.left=Math.random()*window.innerWidth+"px"
-btn.style.top=Math.random()*window.innerHeight+"px"
-
-btn.onclick=()=>{
-
-if(i===2){
-alert("Richtig!")
-}else{
-scare()
-}
-
-}
-
-gameArea.appendChild(btn)
-
-}
-
-}
-
-/* GAME 3 */
-
-function gameDisappear(){
-
-title.innerText="Spiel: Der verschwindende Button"
-
-let btn=document.createElement("button")
-btn.innerText="KLICK"
-
-gameArea.appendChild(btn)
-
-btn.onclick=()=>{
-
-btn.style.display="none"
-
-setTimeout(()=>{
-btn.style.display="block"
-},1000)
-
-}
-
-}
-
-/* GAME 4 */
-
-function gameChaos(){
-
-title.innerText="CHAOS SPIEL"
-
-let btn=document.createElement("button")
-
-btn.innerText="KLICK"
-
-gameArea.appendChild(btn)
-
-btn.onclick=()=>{
-
-document.body.style.transform="rotate("+Math.random()*360+"deg)"
-
-scare()
-
-}
-
-}
-
-/* game wechsel alle 30s */
-
-setInterval(loadRandomGame,30000)
-
-loadRandomGame()
-
-/* devtools erkennung */
-
-setInterval(()=>{
-
-const threshold=160
-
-if(window.outerWidth-window.innerWidth>threshold ||
-window.outerHeight-window.innerHeight>threshold){
-
-alert("Manipulation erkannt")
-
-}
-
-},1000)
-
-/* tastenkombi */
-
-window.addEventListener("keydown",e=>{
-
-if(e.key==="F12" ||
-(e.ctrlKey && e.shiftKey && ["I","J","C"].includes(e.key))){
-
-alert("DevTools erkannt")
-
-}
-
-})
-
-</script>
-
+    <div id="warning">
+        ⚠ WARNUNG: Visuelle Effekte & Jumpscares. Nichts für schwache Nerven!
+    </div>
+
+    <div id="menu">
+        <h1>LEVEL WÄHLEN</h1>
+        <button onclick="startGame('run')">Fang den Button</button>
+        <button onclick="startGame('fake')">Finde das Original</button>
+        <button onclick="startGame('mirror')">Spiegel-Hölle</button>
+        <button onclick="startGame('chaos')">Chaos Modus</button>
+    </div>
+
+    <div id="jumpscare">💀</div>
+
+    <h1 id="gameTitle">Wähle ein Spiel...</h1>
+    <div id="gameArea"></div>
+
+    <script>
+        const gameArea = document.getElementById("gameArea");
+        const title = document.getElementById("gameTitle");
+        const menu = document.getElementById("menu");
+        const jumpscare = document.getElementById("jumpscare");
+
+        function scare() {
+            jumpscare.classList.add("scare-active");
+            document.body.style.animation = "shake 0.1s infinite";
+            
+            setTimeout(() => {
+                jumpscare.classList.remove("scare-active");
+                document.body.style.animation = "";
+            }, 300);
+        }
+
+        function startGame(type) {
+            menu.style.display = "none";
+            gameArea.innerHTML = "";
+            window.onmousemove = null; // Reset Mousemove
+            document.body.style.transform = "rotate(0deg)";
+
+            if (type === 'run') gameButtonRun();
+            else if (type === 'fake') gameFakeButtons();
+            else if (type === 'mirror') gameMirror();
+            else if (type === 'chaos') gameChaos();
+        }
+
+        /* GAME 1: Fang den Button */
+        function gameButtonRun() {
+            title.innerText = "Level: Fang den Button";
+            let btn = document.createElement("button");
+            btn.innerText = "KLICK MICH";
+            btn.style.position = "absolute";
+            gameArea.appendChild(btn);
+
+            const move = () => {
+                btn.style.left = Math.random() * (window.innerWidth - 150) + "px";
+                btn.style.top = Math.random() * (window.innerHeight - 100) + "px";
+            };
+
+            btn.onmouseover = move;
+            btn.onclick = scare;
+            move();
+        }
+
+        /* GAME 2: Finde den echten Button */
+        function gameFakeButtons() {
+            title.innerText = "Level: Finde den echten Button";
+            for (let i = 0; i < 12; i++) {
+                let btn = document.createElement("button");
+                btn.innerText = "KLICK";
+                btn.style.position = "absolute";
+                btn.style.left = Math.random() * (window.innerWidth - 150) + "px";
+                btn.style.top = Math.random() * (window.innerHeight - 100) + "px";
+
+                btn.onclick = () => {
+                    if (i === 7) { // Nur der 8. Button ist "echt"
+                        alert("Gewonnen! Aber es geht weiter...");
+                        location.reload();
+                    } else {
+                        scare();
+                    }
+                };
+                gameArea.appendChild(btn);
+            }
+        }
+
+        /* GAME 3: Spiegel-Hölle (NEU) */
+        function gameMirror() {
+            title.innerText = "Level: Spiegel-Welt";
+            let btn = document.createElement("button");
+            btn.innerText = "KLICK";
+            btn.style.position = "absolute";
+            gameArea.appendChild(btn);
+
+            window.onmousemove = (e) => {
+                let x = window.innerWidth - e.clientX;
+                let y = window.innerHeight - e.clientY;
+                btn.style.left = Math.max(10, Math.min(x, window.innerWidth - 150)) + "px";
+                btn.style.top = Math.max(10, Math.min(y, window.innerHeight - 100)) + "px";
+            };
+
+            btn.onclick = () => {
+                alert("Beeindruckend!");
+                location.reload();
+            };
+        }
+
+        /* GAME 4: Chaos Spiel */
+        function gameChaos() {
+            title.innerText = "Level: TOTALES CHAOS";
+            let btn = document.createElement("button");
+            btn.innerText = "NICHT KLICKEN";
+            gameArea.appendChild(btn);
+
+            btn.onclick = () => {
+                document.body.style.transform = `rotate(${Math.random() * 360}deg)`;
+                scare();
+            };
+        }
+
+        /* DevTools Schutz */
+        setInterval(() => {
+            const threshold = 160;
+            if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
+                document.body.innerHTML = "<h1>MANIPULATION ERKANNT 💀</h1>";
+            }
+        }, 1000);
+
+        window.addEventListener("keydown", e => {
+            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key))) {
+                scare();
+                alert("Versuch es erst gar nicht!");
+            }
+        });
+
+    </script>
 </body>
 </html>
